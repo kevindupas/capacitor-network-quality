@@ -1,11 +1,13 @@
-# @luisbytes/capacitor-telephony
+# @kevindupas/capacitor-telephony-infos
 
-TelephonyManager only for Android
+Extended TelephonyManager for Android — RSRP, RSRQ, SINR, RSSI, VoLTE, VoNR, IP version.
+
+> **iOS note:** Raw radio indicators (RSRP, RSRQ, SINR, RSSI), network generation, and SIM operator are not accessible on iOS due to Apple platform restrictions. This plugin is Android-only for radio data.
 
 ## Install
 
 ```bash
-npm install @luisbytes/capacitor-telephony
+npm install @kevindupas/capacitor-telephony-infos
 npx cap sync
 ```
 
