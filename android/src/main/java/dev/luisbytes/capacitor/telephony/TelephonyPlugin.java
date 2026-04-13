@@ -27,8 +27,29 @@ public class TelephonyPlugin extends Plugin {
     @PluginMethod
     public void getInfo(PluginCall call) {
         final JSObject info = implementation.getInfo();
-
         call.resolve(info);
+    }
+
+    @PluginMethod
+    public void getRadioInfo(PluginCall call) {
+        final boolean permissionGranted = getPermissionState("phone_state") == PermissionState.GRANTED;
+
+        if (!permissionGranted) {
+            requestPermissionForAlias("phone_state", call, "radioInfoPermsCallback");
+            return;
+        }
+
+        final JSObject info = implementation.getRadioInfo();
+        call.resolve(info);
+    }
+
+    @PermissionCallback
+    private void radioInfoPermsCallback(PluginCall call) {
+        if (getPermissionState("phone_state") == PermissionState.GRANTED) {
+            getRadioInfo(call);
+        } else {
+            call.reject("Permission is required");
+        }
     }
 
     @PluginMethod
@@ -39,16 +60,13 @@ public class TelephonyPlugin extends Plugin {
 
         if (!permissionGranted) {
             requestPermissionForAlias("phone_state", call, "phoneStatePermsCallback");
-
             return;
         }
 
         String state = this.implementation.getDataNetworkType(withBasicPermission);
 
         JSObject ret = new JSObject();
-
         ret.put("type", state);
-
         call.resolve(ret);
     }
 
@@ -64,10 +82,8 @@ public class TelephonyPlugin extends Plugin {
     private boolean checkPermission(Boolean withBasicPermission) {
         if (!withBasicPermission && Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
             final PermissionState permissionState = getPermissionState("phone_state");
-
             return permissionState == PermissionState.GRANTED;
         }
-
         return true;
     }
 }

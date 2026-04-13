@@ -4,11 +4,27 @@ import type {
   TelephonyPlugin,
   TelephonyInfo,
   TelephonyNetworkType,
+  TelephonyRadioInfo,
 } from './definitions';
+import { TelephonySignalStrengthLevel, TelephonyIpVersion } from './definitions';
 
 export class TelephonyWeb extends WebPlugin implements TelephonyPlugin {
   async getInfo(): Promise<TelephonyInfo> {
     throw this.unimplemented('Not implemented on web.');
+  }
+
+  async getRadioInfo(): Promise<TelephonyRadioInfo> {
+    return {
+      signalStrengthLevel: TelephonySignalStrengthLevel.UNKNOWN,
+      rsrp: null,
+      rsrq: null,
+      sinr: null,
+      rssi: null,
+      cqi: null,
+      isVoLteAvailable: null,
+      isNrAvailable: null,
+      ipVersion: TelephonyIpVersion.UNKNOWN,
+    };
   }
 
   async getNetworkType(): Promise<{ type: TelephonyNetworkType }> {

@@ -1,7 +1,7 @@
 {
-  "name": "@luisbytes/capacitor-telephony",
-  "version": "8.0.0",
-  "description": "TelephonyManager",
+  "name": "@kevindupas/capacitor-telephony-infos",
+  "version": "1.0.0",
+  "description": "Extended TelephonyManager for Android — RSRP, RSRQ, SINR, RSSI, VoLTE, VoNR, IP version",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -11,21 +11,29 @@
     "android/build.gradle",
     "dist/",
     "ios/Plugin/",
-    "LuisbytesCapacitorTelephony.podspec"
+    "KevindupasCapacitorTelephonyInfos.podspec"
   ],
-  "author": "luisbytes",
+  "author": "kevindupas",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/luisbytes/capacitor-telephony.git"
+    "url": "git+https://github.com/kevindupas/capacitor-telephony-infos.git"
   },
   "bugs": {
-    "url": "https://github.com/luisbytes/capacitor-telephony/issues"
+    "url": "https://github.com/kevindupas/capacitor-telephony-infos/issues"
   },
   "keywords": [
     "capacitor",
     "plugin",
-    "native"
+    "native",
+    "telephony",
+    "rsrp",
+    "rsrq",
+    "sinr",
+    "rssi",
+    "volte",
+    "vonr",
+    "android"
   ],
   "scripts": {
     "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
