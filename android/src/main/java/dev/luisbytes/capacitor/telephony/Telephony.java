@@ -70,7 +70,8 @@ public class Telephony {
 
         // VoLTE / VoNR — Android 12+ (API 31+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            ret.put("isVoLteAvailable", this.telephonyManager.isVoLteAvailable());
+            boolean volte = this.context.getPackageManager().hasSystemFeature("android.hardware.telephony.ims");
+            ret.put("isVoLteAvailable", volte);
             ret.put("isNrAvailable", this.getDataNetworkType(false).equals("5G"));
         } else {
             ret.put("isVoLteAvailable", (Object) null);
