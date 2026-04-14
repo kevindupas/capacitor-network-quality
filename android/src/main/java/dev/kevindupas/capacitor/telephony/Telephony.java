@@ -1,4 +1,4 @@
-package dev.luisbytes.capacitor.telephony;
+package dev.kevindupas.capacitor.telephony;
 
 import static android.telephony.TelephonyManager.DATA_CONNECTED;
 import static android.telephony.TelephonyManager.DATA_CONNECTING;
@@ -19,7 +19,10 @@ import android.telephony.CellInfoWcdma;
 import android.telephony.CellSignalStrengthLte;
 import android.telephony.CellSignalStrengthNr;
 import android.telephony.SignalStrength;
+import android.telephony.TelephonyDisplayInfo;
 import android.telephony.TelephonyManager;
+
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -215,13 +218,70 @@ public class Telephony {
                         dataNetworkType == TelephonyManager.NETWORK_TYPE_HSPAP
         ) {
             return "3G";
-        } else if (dataNetworkType == TelephonyManager.NETWORK_TYPE_LTE) {
-            return "LTE";
         } else if (dataNetworkType == TelephonyManager.NETWORK_TYPE_NR) {
             return "5G";
+        } else if (dataNetworkType == TelephonyManager.NETWORK_TYPE_LTE) {
+            // 5G NSA: TelephonyDisplayInfo override (API 30+) est la méthode officielle
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && this.is5GNsaViaDisplayInfo()) {
+                return "5G";
+            }
+            // Fallback: chercher CellInfoNr dans getAllCellInfo
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && this.has5GNsaCell()) {
+                return "5G";
+            }
+            return "LTE";
         }
 
         return "UNKNOWN";
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    private boolean is5GNsaViaDisplayInfo() {
+        try {
+            final boolean[] result = {false};
+            final Object lock = new Object();
+
+            class DisplayInfoCallback extends android.telephony.TelephonyCallback
+                    implements android.telephony.TelephonyCallback.DisplayInfoListener {
+                @Override
+                public void onDisplayInfoChanged(TelephonyDisplayInfo info) {
+                    int override = info.getOverrideNetworkType();
+                    Log.d("TelephonyPlugin", "TelephonyDisplayInfo overrideNetworkType=" + override);
+                    result[0] = override == TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA
+                            || override == TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA_MMWAVE
+                            || override == TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_ADVANCED;
+                    synchronized (lock) { lock.notifyAll(); }
+                }
+            }
+            DisplayInfoCallback callback = new DisplayInfoCallback();
+
+            this.telephonyManager.registerTelephonyCallback(context.getMainExecutor(), callback);
+            synchronized (lock) { lock.wait(500); }
+            this.telephonyManager.unregisterTelephonyCallback(callback);
+            return result[0];
+        } catch (Exception e) {
+            Log.e("TelephonyPlugin", "is5GNsaViaDisplayInfo error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private boolean has5GNsaCell() {
+        try {
+            List<CellInfo> cellInfoList = this.telephonyManager.getAllCellInfo();
+            if (cellInfoList == null) {
+                Log.d("TelephonyPlugin", "has5GNsaCell: cellInfoList is null");
+                return false;
+            }
+            for (CellInfo cellInfo : cellInfoList) {
+                Log.d("TelephonyPlugin", "CellInfo type: " + cellInfo.getClass().getSimpleName() + " registered=" + cellInfo.isRegistered());
+                if (cellInfo instanceof CellInfoNr) return true;
+            }
+        } catch (Exception e) {
+            Log.e("TelephonyPlugin", "has5GNsaCell error: " + e.getMessage());
+        }
+        return false;
     }
 
     private String getSignalStrengthLevel() {

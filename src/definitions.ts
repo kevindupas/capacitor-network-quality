@@ -2,9 +2,20 @@ import type { PermissionState } from "@capacitor/core";
 
 export interface PermissionStatus {
   phone_state: PermissionState;
+  location: PermissionState;
 }
 
 export interface TelephonyPlugin {
+  /**
+   * Check current permission status for phone state.
+   */
+  checkPermissions(): Promise<PermissionStatus>;
+
+  /**
+   * Request phone state permissions from the user.
+   */
+  requestPermissions(): Promise<PermissionStatus>;
+
   /**
    * Returns basic telephony info: signal level, operator name, data state.
    * Available on Android only.

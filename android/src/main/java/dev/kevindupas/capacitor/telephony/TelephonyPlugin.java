@@ -1,4 +1,4 @@
-package dev.luisbytes.capacitor.telephony;
+package dev.kevindupas.capacitor.telephony;
 
 import android.Manifest;
 import android.os.Build;
@@ -13,7 +13,10 @@ import com.getcapacitor.annotation.PermissionCallback;
 
 @CapacitorPlugin(
     name = "Telephony",
-    permissions = { @Permission(alias = "phone_state", strings = { Manifest.permission.READ_PHONE_STATE }) }
+    permissions = {
+        @Permission(alias = "phone_state", strings = { Manifest.permission.READ_BASIC_PHONE_STATE }),
+        @Permission(alias = "location", strings = { Manifest.permission.ACCESS_FINE_LOCATION })
+    }
 )
 public class TelephonyPlugin extends Plugin {
 
@@ -32,10 +35,10 @@ public class TelephonyPlugin extends Plugin {
 
     @PluginMethod
     public void getRadioInfo(PluginCall call) {
-        final boolean permissionGranted = getPermissionState("phone_state") == PermissionState.GRANTED;
+        final boolean locationGranted = getPermissionState("location") == PermissionState.GRANTED;
 
-        if (!permissionGranted) {
-            requestPermissionForAlias("phone_state", call, "radioInfoPermsCallback");
+        if (!locationGranted) {
+            requestPermissionForAliases(new String[]{"phone_state", "location"}, call, "radioInfoPermsCallback");
             return;
         }
 
@@ -45,10 +48,11 @@ public class TelephonyPlugin extends Plugin {
 
     @PermissionCallback
     private void radioInfoPermsCallback(PluginCall call) {
-        if (getPermissionState("phone_state") == PermissionState.GRANTED) {
-            getRadioInfo(call);
+        if (getPermissionState("location") == PermissionState.GRANTED) {
+            final JSObject info = implementation.getRadioInfo();
+            call.resolve(info);
         } else {
-            call.reject("Permission is required");
+            call.reject("Location permission is required for radio info");
         }
     }
 
@@ -80,10 +84,13 @@ public class TelephonyPlugin extends Plugin {
     }
 
     private boolean checkPermission(Boolean withBasicPermission) {
-        if (!withBasicPermission && Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
-            final PermissionState permissionState = getPermissionState("phone_state");
-            return permissionState == PermissionState.GRANTED;
+        // Location is required for getAllCellInfo() — always check it
+        if (getPermissionState("location") == PermissionState.GRANTED) {
+            return true;
         }
-        return true;
+        if (Boolean.TRUE.equals(withBasicPermission)) {
+            return getPermissionState("phone_state") == PermissionState.GRANTED;
+        }
+        return false;
     }
 }

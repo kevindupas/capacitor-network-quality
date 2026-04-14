@@ -5,10 +5,19 @@ import type {
   TelephonyInfo,
   TelephonyNetworkType,
   TelephonyRadioInfo,
+  PermissionStatus,
 } from './definitions';
 import { TelephonySignalStrengthLevel, TelephonyIpVersion } from './definitions';
 
 export class TelephonyWeb extends WebPlugin implements TelephonyPlugin {
+  async checkPermissions(): Promise<PermissionStatus> {
+    return { phone_state: 'denied', location: 'denied' };
+  }
+
+  async requestPermissions(): Promise<PermissionStatus> {
+    return { phone_state: 'denied', location: 'denied' };
+  }
+
   async getInfo(): Promise<TelephonyInfo> {
     throw this.unimplemented('Not implemented on web.');
   }

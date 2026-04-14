@@ -1,6 +1,6 @@
 {
   "name": "@kevindupas/capacitor-telephony-infos",
-  "version": "1.0.2",
+  "version": "1.0.7",
   "description": "Extended TelephonyManager for Android — RSRP, RSRQ, SINR, RSSI, VoLTE, VoNR, IP version",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -81,7 +81,8 @@
       "src": "ios"
     },
     "android": {
-      "src": "android"
+      "src": "android",
+      "gradleClasspath": "dev.kevindupas.capacitor.telephony.TelephonyPlugin"
     }
   }
 }

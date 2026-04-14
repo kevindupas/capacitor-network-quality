@@ -17,23 +17,55 @@ To use this plugin you need to add the following permissions to the `AndroidMani
 
 ```xml
 <uses-permission android:name="android.permission.READ_BASIC_PHONE_STATE" />
-<uses-permission android:name="android.permission.READ_PHONE_STATE" android:maxSdkVersion="32" />
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 ```
+
+> **Note:** `READ_PHONE_STATE` is required for `TelephonyDisplayInfo` (5G NSA detection). `ACCESS_FINE_LOCATION` is required for `getAllCellInfo()` (raw signal metrics RSRP/RSRQ/SINR/RSSI). Both are runtime permissions — the plugin requests them automatically when needed.
 
 ## API
 
 <docgen-index>
 
+* [`checkPermissions()`](#checkpermissions)
+* [`requestPermissions()`](#requestpermissions)
 * [`getInfo()`](#getinfo)
 * [`getRadioInfo()`](#getradioinfo)
 * [`getNetworkType(...)`](#getnetworktype)
 * [Interfaces](#interfaces)
+* [Type Aliases](#type-aliases)
 * [Enums](#enums)
 
 </docgen-index>
 
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
+
+### checkPermissions()
+
+```typescript
+checkPermissions() => Promise<PermissionStatus>
+```
+
+Check current permission status for phone state.
+
+**Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
+
+--------------------
+
+
+### requestPermissions()
+
+```typescript
+requestPermissions() => Promise<PermissionStatus>
+```
+
+Request phone state permissions from the user.
+
+**Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
+
+--------------------
+
 
 ### getInfo()
 
@@ -86,6 +118,14 @@ Available on Android only.
 ### Interfaces
 
 
+#### PermissionStatus
+
+| Prop              | Type                                                        |
+| ----------------- | ----------------------------------------------------------- |
+| **`phone_state`** | <code><a href="#permissionstate">PermissionState</a></code> |
+| **`location`**    | <code><a href="#permissionstate">PermissionState</a></code> |
+
+
 #### TelephonyInfo
 
 | Prop                      | Type                                                                                  |
@@ -108,6 +148,14 @@ Available on Android only.
 | **`isVoLteAvailable`**    | <code>boolean \| null</code>                                                          | Whether VoLTE (Voice over LTE) is supported by the device and network. Android 12+ only. null on older versions and iOS.                        |
 | **`isNrAvailable`**       | <code>boolean \| null</code>                                                          | Whether VoNR / 5G NR is supported by the device and network. Android 12+ only. null on older versions and iOS.                                  |
 | **`ipVersion`**           | <code><a href="#telephonyipversion">TelephonyIpVersion</a></code>                     | Detected IP version: "IPv4", "IPv6", "dual", or "unknown".                                                                                      |
+
+
+### Type Aliases
+
+
+#### PermissionState
+
+<code>'prompt' | 'prompt-with-rationale' | 'granted' | 'denied'</code>
 
 
 ### Enums
