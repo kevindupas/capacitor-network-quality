@@ -1,6 +1,16 @@
 # @kevindupas/capacitor-telephony-infos
 
-Extended TelephonyManager for Android — RSRP, RSRQ, SINR, RSSI, VoLTE, VoNR, IP version.
+Extended TelephonyManager for Android — RSRP, RSRQ, SINR, RSSI, VoLTE, VoNR, 5G NSA detection, IP version.
+
+![Capacitor 8](https://img.shields.io/badge/Capacitor-8.x-blue?logo=capacitor)
+![Android](https://img.shields.io/badge/Platform-Android-green?logo=android)
+![npm](https://img.shields.io/npm/v/@kevindupas/capacitor-telephony-infos)
+
+## Compatibility
+
+| Plugin version | Capacitor | Android API |
+| -------------- | --------- | ----------- |
+| 1.x            | 8.x       | 24+         |
 
 > **iOS note:** Raw radio indicators (RSRP, RSRQ, SINR, RSSI), network generation, and SIM operator are not accessible on iOS due to Apple platform restrictions. This plugin is Android-only for radio data.
 

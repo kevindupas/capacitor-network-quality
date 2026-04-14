@@ -1,6 +1,6 @@
 {
   "name": "@kevindupas/capacitor-telephony-infos",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Extended TelephonyManager for Android — RSRP, RSRQ, SINR, RSSI, VoLTE, VoNR, IP version",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -70,6 +70,14 @@
   },
   "peerDependencies": {
     "@capacitor/core": ">=8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@capacitor/core": {
+      "optional": false
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "prettier": "@ionic/prettier-config",
   "swiftlint": "@ionic/swiftlint-config",
