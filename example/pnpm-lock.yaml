@@ -50,7 +50,7 @@ dependencies:
   '@ionic/angular':
     specifier: ^7.5.0
     version: 7.7.4(@angular/core@17.2.4)(@angular/forms@17.2.4)(@angular/router@17.2.4)(rxjs@7.8.1)(zone.js@0.14.4)
-  '@luisbytes/capacitor-telephony':
+  '@kevindupas/capacitor-network-quality':
     specifier: link:..
     version: link:..
   ionicons:

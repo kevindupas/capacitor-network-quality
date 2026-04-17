@@ -79,7 +79,7 @@ public class NetworkQuality {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             boolean volte = this.context.getPackageManager().hasSystemFeature("android.hardware.telephony.ims");
             ret.put("isVoLteAvailable", volte);
-            ret.put("isNrAvailable", this.getDataNetworkType(false).equals("5G"));
+            ret.put("isNrAvailable", this.getDataNetworkType(true).equals("5G"));
         } else {
             ret.put("isVoLteAvailable", (Object) null);
             ret.put("isNrAvailable", (Object) null);
@@ -307,6 +307,10 @@ public class NetworkQuality {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private Boolean checkPermission() {
+        // ACCESS_FINE_LOCATION is required for getAllCellInfo() on Android 9+
+        int locationState = this.context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+        if (locationState != PackageManager.PERMISSION_GRANTED) return false;
+
         int permissionState;
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
             permissionState = this.context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE);
