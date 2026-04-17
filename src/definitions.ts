@@ -5,30 +5,30 @@ export interface PermissionStatus {
   location: PermissionState;
 }
 
-export interface TelephonyPlugin {
+export interface NetworkQualityPlugin {
   /**
-   * Check current permission status for phone state.
+   * Check current permission status for phone state and location.
    */
   checkPermissions(): Promise<PermissionStatus>;
 
   /**
-   * Request phone state permissions from the user.
+   * Request phone state and location permissions from the user.
    */
   requestPermissions(): Promise<PermissionStatus>;
 
   /**
-   * Returns basic telephony info: signal level, operator name, data state.
+   * Returns basic network info: signal level, operator name, data state, MCC/MNC.
    * Available on Android only.
    */
-  getInfo(): Promise<TelephonyInfo>;
+  getInfo(): Promise<NetworkInfo>;
 
   /**
-   * Returns extended radio information: raw signal metrics (RSRP, RSRQ, SINR, RSSI),
+   * Returns extended radio information: raw signal metrics (RSRP, RSRQ, SINR, RSSI, CQI),
    * VoLTE/VoNR availability, and IP version.
-   * Requires READ_PHONE_STATE permission on Android.
+   * Requires READ_PHONE_STATE + ACCESS_FINE_LOCATION permissions on Android.
    * Not available on iOS (Apple platform restriction).
    */
-  getRadioInfo(): Promise<TelephonyRadioInfo>;
+  getRadioInfo(): Promise<RadioInfo>;
 
   /**
    * Returns the current data network type (2G, 3G, LTE, 5G).
@@ -36,10 +36,10 @@ export interface TelephonyPlugin {
    */
   getNetworkType(options?: {
     withBasicPermission?: boolean;
-  }): Promise<{ type: TelephonyNetworkType }>;
+  }): Promise<{ type: NetworkType }>;
 }
 
-export enum TelephonySignalStrengthLevel {
+export enum SignalStrengthLevel {
   UNKNOWN = "UNKNOWN",
   NONE = "NONE",
   POOR = "POOR",
@@ -48,7 +48,7 @@ export enum TelephonySignalStrengthLevel {
   GREAT = "GREAT",
 }
 
-export enum TelephonyNetworkType {
+export enum NetworkType {
   UNKNOWN = "UNKNOWN",
   TWO_G = "2G",
   THREE_G = "3G",
@@ -56,7 +56,7 @@ export enum TelephonyNetworkType {
   FIVE_G = "5G",
 }
 
-export enum TelephonyDataState {
+export enum DataState {
   UNKNOWN = "UNKNOWN",
   DISCONNECTED = "DISCONNECTED",
   CONNECTING = "CONNECTING",
@@ -66,73 +66,65 @@ export enum TelephonyDataState {
   HANDOVER_IN_PROGRESS = "HANDOVER_IN_PROGRESS",
 }
 
-export enum TelephonyIpVersion {
+export enum IpVersion {
   UNKNOWN = "unknown",
   IPV4 = "IPv4",
   IPV6 = "IPv6",
   DUAL = "dual",
 }
 
-export interface TelephonyInfo {
-  dataState: TelephonyDataState;
-  signalStrengthLevel: TelephonySignalStrengthLevel;
+export interface NetworkInfo {
+  dataState: DataState;
+  signalStrengthLevel: SignalStrengthLevel;
   simOperatorName: string;
+  /**
+   * Mobile Country Code (3 digits, e.g. "639" for Kenya).
+   * null if SIM absent or operator string unavailable.
+   */
+  mcc: string | null;
+  /**
+   * Mobile Network Code (2–3 digits, e.g. "02" for Safaricom Kenya).
+   * null if SIM absent or operator string unavailable.
+   */
+  mnc: string | null;
 }
 
-export interface TelephonyRadioInfo {
-  /**
-   * Qualitative signal level (NONE / POOR / MODERATE / GOOD / GREAT).
-   */
-  signalStrengthLevel: TelephonySignalStrengthLevel;
-
+export interface RadioInfo {
+  signalStrengthLevel: SignalStrengthLevel;
   /**
    * Reference Signal Received Power in dBm (LTE/NR).
-   * Typical range: -44 (excellent) to -140 (no signal).
-   * null if unavailable or unsupported.
+   * Typical range: -44 (excellent) to -140 (no signal). null if unavailable.
    */
   rsrp: number | null;
-
   /**
    * Reference Signal Received Quality in dB (LTE/NR).
-   * Typical range: -3 (excellent) to -20 (poor).
-   * null if unavailable or unsupported.
+   * Typical range: -3 (excellent) to -20 (poor). null if unavailable.
    */
   rsrq: number | null;
-
   /**
    * Signal-to-Interference-plus-Noise Ratio in dB (LTE/NR).
-   * Typical range: +30 (excellent) to -20 (poor).
-   * null if unavailable or unsupported.
+   * Typical range: +30 (excellent) to -20 (poor). null if unavailable.
    */
   sinr: number | null;
-
   /**
    * Received Signal Strength Indicator in dBm (WCDMA/3G or LTE).
-   * Typical range: -50 (excellent) to -100 (poor).
-   * null if unavailable or unsupported.
+   * Typical range: -50 (excellent) to -100 (poor). null if unavailable.
    */
   rssi: number | null;
-
   /**
-   * Channel Quality Indicator (LTE only, 0–15).
-   * null if unavailable or unsupported.
+   * Channel Quality Indicator (LTE only, 0–15). null if unavailable.
    */
   cqi: number | null;
-
   /**
-   * Whether VoLTE (Voice over LTE) is supported by the device and network.
-   * Android 12+ only. null on older versions and iOS.
+   * Whether VoLTE is supported by device and network. Android 12+ only.
    */
   isVoLteAvailable: boolean | null;
-
   /**
-   * Whether VoNR / 5G NR is supported by the device and network.
-   * Android 12+ only. null on older versions and iOS.
+   * Whether VoNR / 5G NR is available. Android 12+ only.
    */
   isNrAvailable: boolean | null;
-
   /**
    * Detected IP version: "IPv4", "IPv6", "dual", or "unknown".
    */
-  ipVersion: TelephonyIpVersion;
+  ipVersion: IpVersion;
 }

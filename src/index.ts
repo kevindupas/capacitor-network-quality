@@ -1,10 +1,10 @@
 import { registerPlugin } from '@capacitor/core';
 
-import type { TelephonyPlugin } from './definitions';
+import type { NetworkQualityPlugin } from './definitions';
 
-const Telephony = registerPlugin<TelephonyPlugin>('Telephony', {
-  web: () => import('./web').then(m => new m.TelephonyWeb()),
+const NetworkQuality = registerPlugin<NetworkQualityPlugin>('NetworkQuality', {
+  web: () => import('./web').then(m => new m.NetworkQualityWeb()),
 });
 
 export * from './definitions';
-export { Telephony };
+export { NetworkQuality };

@@ -1,4 +1,4 @@
-package dev.luisbytes.capacitor.telephony.example;
+package dev.kevindupas.capacitor.networkquality.example;
 
 import com.getcapacitor.BridgeActivity;
 

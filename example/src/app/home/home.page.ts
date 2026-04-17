@@ -1,7 +1,7 @@
 import { JsonPipe } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonList, IonItem, IonLabel, IonTextarea } from '@ionic/angular/standalone';
-import { Telephony, TelephonyInfo, TelephonyNetworkType } from '@luisbytes/capacitor-telephony';
+import { NetworkQuality, NetworkInfo, NetworkType } from '@kevindupas/capacitor-network-quality';
 
 @Component({
   selector: 'app-home',
@@ -11,23 +11,19 @@ import { Telephony, TelephonyInfo, TelephonyNetworkType } from '@luisbytes/capac
   imports: [IonTextarea, IonButton, IonHeader, IonToolbar, IonTitle, IonContent, JsonPipe],
 })
 export class HomePage {
-  info = signal<TelephonyInfo | null>(null);
+  info = signal<NetworkInfo | null>(null);
 
-  networkType = signal<{ type: TelephonyNetworkType } | null>(null);
+  networkType = signal<{ type: NetworkType } | null>(null);
 
   constructor() { }
 
   async getInfo() {
-    const info = await Telephony.getInfo();
-
+    const info = await NetworkQuality.getInfo();
     this.info.set(info);
   }
 
   async getNetworkType() {
-    const networkType = await Telephony.getNetworkType({ withBasicPermission: true });
-
+    const networkType = await NetworkQuality.getNetworkType({ withBasicPermission: true });
     this.networkType.set(networkType);
   }
-
-
 }

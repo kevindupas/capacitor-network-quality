@@ -1,15 +1,14 @@
 import { WebPlugin } from '@capacitor/core';
 
 import type {
-  TelephonyPlugin,
-  TelephonyInfo,
-  TelephonyNetworkType,
-  TelephonyRadioInfo,
+  NetworkQualityPlugin,
+  NetworkInfo,
+  RadioInfo,
   PermissionStatus,
 } from './definitions';
-import { TelephonySignalStrengthLevel, TelephonyIpVersion } from './definitions';
+import { SignalStrengthLevel, IpVersion, NetworkType } from './definitions';
 
-export class TelephonyWeb extends WebPlugin implements TelephonyPlugin {
+export class NetworkQualityWeb extends WebPlugin implements NetworkQualityPlugin {
   async checkPermissions(): Promise<PermissionStatus> {
     return { phone_state: 'denied', location: 'denied' };
   }
@@ -18,13 +17,13 @@ export class TelephonyWeb extends WebPlugin implements TelephonyPlugin {
     return { phone_state: 'denied', location: 'denied' };
   }
 
-  async getInfo(): Promise<TelephonyInfo> {
+  async getInfo(): Promise<NetworkInfo> {
     throw this.unimplemented('Not implemented on web.');
   }
 
-  async getRadioInfo(): Promise<TelephonyRadioInfo> {
+  async getRadioInfo(): Promise<RadioInfo> {
     return {
-      signalStrengthLevel: TelephonySignalStrengthLevel.UNKNOWN,
+      signalStrengthLevel: SignalStrengthLevel.UNKNOWN,
       rsrp: null,
       rsrq: null,
       sinr: null,
@@ -32,11 +31,11 @@ export class TelephonyWeb extends WebPlugin implements TelephonyPlugin {
       cqi: null,
       isVoLteAvailable: null,
       isNrAvailable: null,
-      ipVersion: TelephonyIpVersion.UNKNOWN,
+      ipVersion: IpVersion.UNKNOWN,
     };
   }
 
-  async getNetworkType(): Promise<{ type: TelephonyNetworkType }> {
+  async getNetworkType(): Promise<{ type: NetworkType }> {
     throw this.unimplemented('Not implemented on web.');
   }
 }

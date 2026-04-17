@@ -1,4 +1,4 @@
-package dev.kevindupas.capacitor.telephony;
+package dev.kevindupas.capacitor.networkquality;
 
 import static android.telephony.TelephonyManager.DATA_CONNECTED;
 import static android.telephony.TelephonyManager.DATA_CONNECTING;
@@ -21,7 +21,6 @@ import android.telephony.CellSignalStrengthNr;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyDisplayInfo;
 import android.telephony.TelephonyManager;
-
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -36,12 +35,14 @@ import java.net.NetworkInterface;
 import java.util.Enumeration;
 import java.util.List;
 
-public class Telephony {
+public class NetworkQuality {
+
+    private static final String TAG = "NetworkQualityPlugin";
 
     private final Context context;
     private final TelephonyManager telephonyManager;
 
-    public Telephony(Context context) {
+    public NetworkQuality(Context context) {
         this.context = context;
         this.telephonyManager = (TelephonyManager) this.context.getSystemService(Context.TELEPHONY_SERVICE);
     }
@@ -51,27 +52,30 @@ public class Telephony {
         ret.put("signalStrengthLevel", this.getSignalStrengthLevel());
         ret.put("simOperatorName", this.telephonyManager.getSimOperatorName());
         ret.put("dataState", this.getDataState());
+
+        String simOperator = this.telephonyManager.getSimOperator();
+        if (simOperator != null && simOperator.length() >= 5) {
+            ret.put("mcc", simOperator.substring(0, 3));
+            ret.put("mnc", simOperator.substring(3));
+        } else {
+            ret.put("mcc", (Object) null);
+            ret.put("mnc", (Object) null);
+        }
+
         return ret;
     }
 
     public JSObject getRadioInfo() {
         JSObject ret = new JSObject();
 
-        // Qualitative signal level
         ret.put("signalStrengthLevel", this.getSignalStrengthLevel());
 
-        // Raw radio values — requires READ_PHONE_STATE + API 29+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && this.checkPermission()) {
             this.appendRawSignalMetrics(ret);
         } else {
-            ret.put("rsrp", (Object) null);
-            ret.put("rsrq", (Object) null);
-            ret.put("sinr", (Object) null);
-            ret.put("rssi", (Object) null);
-            ret.put("cqi", (Object) null);
+            putNullRadio(ret);
         }
 
-        // VoLTE / VoNR — Android 12+ (API 31+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             boolean volte = this.context.getPackageManager().hasSystemFeature("android.hardware.telephony.ims");
             ret.put("isVoLteAvailable", volte);
@@ -81,7 +85,6 @@ public class Telephony {
             ret.put("isNrAvailable", (Object) null);
         }
 
-        // IPv4 / IPv6
         ret.put("ipVersion", this.detectIpVersion());
 
         return ret;
@@ -100,7 +103,6 @@ public class Telephony {
             for (CellInfo cellInfo : cellInfoList) {
                 if (!cellInfo.isRegistered()) continue;
 
-                // LTE
                 if (cellInfo instanceof CellInfoLte) {
                     CellSignalStrengthLte lte = ((CellInfoLte) cellInfo).getCellSignalStrength();
                     putOrNull(ret, "rsrp", lte.getRsrp());
@@ -115,7 +117,6 @@ public class Telephony {
                     return;
                 }
 
-                // 5G NR
                 if (cellInfo instanceof CellInfoNr) {
                     CellSignalStrengthNr nr = (CellSignalStrengthNr) ((CellInfoNr) cellInfo).getCellSignalStrength();
                     putOrNull(ret, "rsrp", nr.getSsRsrp());
@@ -126,7 +127,6 @@ public class Telephony {
                     return;
                 }
 
-                // WCDMA (3G)
                 if (cellInfo instanceof CellInfoWcdma) {
                     putOrNull(ret, "rssi", ((CellInfoWcdma) cellInfo).getCellSignalStrength().getDbm());
                     ret.put("rsrp", (Object) null);
@@ -139,6 +139,7 @@ public class Telephony {
 
             putNullRadio(ret);
         } catch (Exception e) {
+            Log.e(TAG, "appendRawSignalMetrics error: " + e.getMessage());
             putNullRadio(ret);
         }
     }
@@ -221,11 +222,9 @@ public class Telephony {
         } else if (dataNetworkType == TelephonyManager.NETWORK_TYPE_NR) {
             return "5G";
         } else if (dataNetworkType == TelephonyManager.NETWORK_TYPE_LTE) {
-            // 5G NSA: TelephonyDisplayInfo override (API 30+) est la méthode officielle
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && this.is5GNsaViaDisplayInfo()) {
                 return "5G";
             }
-            // Fallback: chercher CellInfoNr dans getAllCellInfo
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && this.has5GNsaCell()) {
                 return "5G";
             }
@@ -246,7 +245,6 @@ public class Telephony {
                 @Override
                 public void onDisplayInfoChanged(TelephonyDisplayInfo info) {
                     int override = info.getOverrideNetworkType();
-                    Log.d("TelephonyPlugin", "TelephonyDisplayInfo overrideNetworkType=" + override);
                     result[0] = override == TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA
                             || override == TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA_MMWAVE
                             || override == TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_ADVANCED;
@@ -260,7 +258,7 @@ public class Telephony {
             this.telephonyManager.unregisterTelephonyCallback(callback);
             return result[0];
         } catch (Exception e) {
-            Log.e("TelephonyPlugin", "is5GNsaViaDisplayInfo error: " + e.getMessage());
+            Log.e(TAG, "is5GNsaViaDisplayInfo error: " + e.getMessage());
             return false;
         }
     }
@@ -270,16 +268,12 @@ public class Telephony {
     private boolean has5GNsaCell() {
         try {
             List<CellInfo> cellInfoList = this.telephonyManager.getAllCellInfo();
-            if (cellInfoList == null) {
-                Log.d("TelephonyPlugin", "has5GNsaCell: cellInfoList is null");
-                return false;
-            }
+            if (cellInfoList == null) return false;
             for (CellInfo cellInfo : cellInfoList) {
-                Log.d("TelephonyPlugin", "CellInfo type: " + cellInfo.getClass().getSimpleName() + " registered=" + cellInfo.isRegistered());
                 if (cellInfo instanceof CellInfoNr) return true;
             }
         } catch (Exception e) {
-            Log.e("TelephonyPlugin", "has5GNsaCell error: " + e.getMessage());
+            Log.e(TAG, "has5GNsaCell error: " + e.getMessage());
         }
         return false;
     }

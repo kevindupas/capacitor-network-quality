@@ -1,29 +1,23 @@
-# @kevindupas/capacitor-telephony-infos
+# @kevindupas/capacitor-network-quality
 
-Extended TelephonyManager for Android — RSRP, RSRQ, SINR, RSSI, VoLTE, VoNR, 5G NSA detection, IP version.
+Android TelephonyManager plugin for Capacitor — signal metrics (RSRP, RSRQ, SINR, RSSI, CQI), network type (2G/3G/LTE/5G), VoLTE, 5G NSA detection, IP version, MCC/MNC.
 
 ![Capacitor 8](https://img.shields.io/badge/Capacitor-8.x-blue?logo=capacitor)
 ![Android](https://img.shields.io/badge/Platform-Android-green?logo=android)
-![npm](https://img.shields.io/npm/v/@kevindupas/capacitor-telephony-infos)
-
-## Compatibility
-
-| Plugin version | Capacitor | Android API |
-| -------------- | --------- | ----------- |
-| 1.x            | 8.x       | 24+         |
+![npm](https://img.shields.io/npm/v/@kevindupas/capacitor-network-quality)
 
 > **iOS note:** Raw radio indicators (RSRP, RSRQ, SINR, RSSI), network generation, and SIM operator are not accessible on iOS due to Apple platform restrictions. This plugin is Android-only for radio data.
 
 ## Install
 
 ```bash
-npm install @kevindupas/capacitor-telephony-infos
+npm install @kevindupas/capacitor-network-quality
 npx cap sync
 ```
 
 ## Android setup
 
-To use this plugin you need to add the following permissions to the `AndroidManifest.xml` before or after the `application` tag.
+Add to `AndroidManifest.xml` (before or after the `application` tag):
 
 ```xml
 <uses-permission android:name="android.permission.READ_BASIC_PHONE_STATE" />
@@ -31,7 +25,25 @@ To use this plugin you need to add the following permissions to the `AndroidMani
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 ```
 
-> **Note:** `READ_PHONE_STATE` is required for `TelephonyDisplayInfo` (5G NSA detection). `ACCESS_FINE_LOCATION` is required for `getAllCellInfo()` (raw signal metrics RSRP/RSRQ/SINR/RSSI). Both are runtime permissions — the plugin requests them automatically when needed.
+> `READ_PHONE_STATE` is required for `TelephonyDisplayInfo` (5G NSA detection). `ACCESS_FINE_LOCATION` is required for `getAllCellInfo()` (raw signal metrics). Both are runtime permissions — the plugin requests them automatically.
+
+## Usage
+
+```typescript
+import { NetworkQuality } from '@kevindupas/capacitor-network-quality';
+
+// Basic info — no permission required
+const info = await NetworkQuality.getInfo();
+// { signalStrengthLevel: 'GOOD', simOperatorName: 'Safaricom', dataState: 'CONNECTED', mcc: '639', mnc: '02' }
+
+// Raw signal metrics — requires READ_PHONE_STATE + ACCESS_FINE_LOCATION
+const radio = await NetworkQuality.getRadioInfo();
+// { rsrp: -85, rsrq: -10, sinr: 15, rssi: -75, cqi: 12, isVoLteAvailable: true, isNrAvailable: false, ipVersion: 'dual' }
+
+// Network type — requires READ_PHONE_STATE
+const { type } = await NetworkQuality.getNetworkType();
+// 'LTE' | '5G' | '3G' | '2G' | 'UNKNOWN'
+```
 
 ## API
 
@@ -57,7 +69,7 @@ To use this plugin you need to add the following permissions to the `AndroidMani
 checkPermissions() => Promise<PermissionStatus>
 ```
 
-Check current permission status for phone state.
+Check current permission status for phone state and location.
 
 **Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
 
@@ -70,7 +82,7 @@ Check current permission status for phone state.
 requestPermissions() => Promise<PermissionStatus>
 ```
 
-Request phone state permissions from the user.
+Request phone state and location permissions from the user.
 
 **Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
 
@@ -80,13 +92,13 @@ Request phone state permissions from the user.
 ### getInfo()
 
 ```typescript
-getInfo() => Promise<TelephonyInfo>
+getInfo() => Promise<NetworkInfo>
 ```
 
-Returns basic telephony info: signal level, operator name, data state.
+Returns basic network info: signal level, operator name, data state, MCC/MNC.
 Available on Android only.
 
-**Returns:** <code>Promise&lt;<a href="#telephonyinfo">TelephonyInfo</a>&gt;</code>
+**Returns:** <code>Promise&lt;<a href="#networkinfo">NetworkInfo</a>&gt;</code>
 
 --------------------
 
@@ -94,15 +106,15 @@ Available on Android only.
 ### getRadioInfo()
 
 ```typescript
-getRadioInfo() => Promise<TelephonyRadioInfo>
+getRadioInfo() => Promise<RadioInfo>
 ```
 
-Returns extended radio information: raw signal metrics (RSRP, RSRQ, SINR, RSSI),
+Returns extended radio information: raw signal metrics (RSRP, RSRQ, SINR, RSSI, CQI),
 VoLTE/VoNR availability, and IP version.
-Requires READ_PHONE_STATE permission on Android.
+Requires READ_PHONE_STATE + ACCESS_FINE_LOCATION permissions on Android.
 Not available on iOS (Apple platform restriction).
 
-**Returns:** <code>Promise&lt;<a href="#telephonyradioinfo">TelephonyRadioInfo</a>&gt;</code>
+**Returns:** <code>Promise&lt;<a href="#radioinfo">RadioInfo</a>&gt;</code>
 
 --------------------
 
@@ -110,7 +122,7 @@ Not available on iOS (Apple platform restriction).
 ### getNetworkType(...)
 
 ```typescript
-getNetworkType(options?: { withBasicPermission?: boolean | undefined; } | undefined) => Promise<{ type: TelephonyNetworkType; }>
+getNetworkType(options?: { withBasicPermission?: boolean | undefined; } | undefined) => Promise<{ type: NetworkType; }>
 ```
 
 Returns the current data network type (2G, 3G, LTE, 5G).
@@ -120,7 +132,7 @@ Available on Android only.
 | ------------- | ----------------------------------------------- |
 | **`options`** | <code>{ withBasicPermission?: boolean; }</code> |
 
-**Returns:** <code>Promise&lt;{ type: <a href="#telephonynetworktype">TelephonyNetworkType</a>; }&gt;</code>
+**Returns:** <code>Promise&lt;{ type: <a href="#networktype">NetworkType</a>; }&gt;</code>
 
 --------------------
 
@@ -136,28 +148,30 @@ Available on Android only.
 | **`location`**    | <code><a href="#permissionstate">PermissionState</a></code> |
 
 
-#### TelephonyInfo
+#### NetworkInfo
 
-| Prop                      | Type                                                                                  |
-| ------------------------- | ------------------------------------------------------------------------------------- |
-| **`dataState`**           | <code><a href="#telephonydatastate">TelephonyDataState</a></code>                     |
-| **`signalStrengthLevel`** | <code><a href="#telephonysignalstrengthlevel">TelephonySignalStrengthLevel</a></code> |
-| **`simOperatorName`**     | <code>string</code>                                                                   |
+| Prop                      | Type                                                                | Description                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **`dataState`**           | <code><a href="#datastate">DataState</a></code>                     |                                                                                                                     |
+| **`signalStrengthLevel`** | <code><a href="#signalstrengthlevel">SignalStrengthLevel</a></code> |                                                                                                                     |
+| **`simOperatorName`**     | <code>string</code>                                                 |                                                                                                                     |
+| **`mcc`**                 | <code>string \| null</code>                                         | Mobile Country Code (3 digits, e.g. "639" for Kenya). null if SIM absent or operator string unavailable.            |
+| **`mnc`**                 | <code>string \| null</code>                                         | Mobile Network Code (2–3 digits, e.g. "02" for Safaricom Kenya). null if SIM absent or operator string unavailable. |
 
 
-#### TelephonyRadioInfo
+#### RadioInfo
 
-| Prop                      | Type                                                                                  | Description                                                                                                                                     |
-| ------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`signalStrengthLevel`** | <code><a href="#telephonysignalstrengthlevel">TelephonySignalStrengthLevel</a></code> | Qualitative signal level (NONE / POOR / MODERATE / GOOD / GREAT).                                                                               |
-| **`rsrp`**                | <code>number \| null</code>                                                           | Reference Signal Received Power in dBm (LTE/NR). Typical range: -44 (excellent) to -140 (no signal). null if unavailable or unsupported.        |
-| **`rsrq`**                | <code>number \| null</code>                                                           | Reference Signal Received Quality in dB (LTE/NR). Typical range: -3 (excellent) to -20 (poor). null if unavailable or unsupported.              |
-| **`sinr`**                | <code>number \| null</code>                                                           | Signal-to-Interference-plus-Noise Ratio in dB (LTE/NR). Typical range: +30 (excellent) to -20 (poor). null if unavailable or unsupported.       |
-| **`rssi`**                | <code>number \| null</code>                                                           | Received Signal Strength Indicator in dBm (WCDMA/3G or LTE). Typical range: -50 (excellent) to -100 (poor). null if unavailable or unsupported. |
-| **`cqi`**                 | <code>number \| null</code>                                                           | Channel Quality Indicator (LTE only, 0–15). null if unavailable or unsupported.                                                                 |
-| **`isVoLteAvailable`**    | <code>boolean \| null</code>                                                          | Whether VoLTE (Voice over LTE) is supported by the device and network. Android 12+ only. null on older versions and iOS.                        |
-| **`isNrAvailable`**       | <code>boolean \| null</code>                                                          | Whether VoNR / 5G NR is supported by the device and network. Android 12+ only. null on older versions and iOS.                                  |
-| **`ipVersion`**           | <code><a href="#telephonyipversion">TelephonyIpVersion</a></code>                     | Detected IP version: "IPv4", "IPv6", "dual", or "unknown".                                                                                      |
+| Prop                      | Type                                                                | Description                                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **`signalStrengthLevel`** | <code><a href="#signalstrengthlevel">SignalStrengthLevel</a></code> |                                                                                                                                  |
+| **`rsrp`**                | <code>number \| null</code>                                         | Reference Signal Received Power in dBm (LTE/NR). Typical range: -44 (excellent) to -140 (no signal). null if unavailable.        |
+| **`rsrq`**                | <code>number \| null</code>                                         | Reference Signal Received Quality in dB (LTE/NR). Typical range: -3 (excellent) to -20 (poor). null if unavailable.              |
+| **`sinr`**                | <code>number \| null</code>                                         | Signal-to-Interference-plus-Noise Ratio in dB (LTE/NR). Typical range: +30 (excellent) to -20 (poor). null if unavailable.       |
+| **`rssi`**                | <code>number \| null</code>                                         | Received Signal Strength Indicator in dBm (WCDMA/3G or LTE). Typical range: -50 (excellent) to -100 (poor). null if unavailable. |
+| **`cqi`**                 | <code>number \| null</code>                                         | Channel Quality Indicator (LTE only, 0–15). null if unavailable.                                                                 |
+| **`isVoLteAvailable`**    | <code>boolean \| null</code>                                        | Whether VoLTE is supported by device and network. Android 12+ only.                                                              |
+| **`isNrAvailable`**       | <code>boolean \| null</code>                                        | Whether VoNR / 5G NR is available. Android 12+ only.                                                                             |
+| **`ipVersion`**           | <code><a href="#ipversion">IpVersion</a></code>                     | Detected IP version: "IPv4", "IPv6", "dual", or "unknown".                                                                       |
 
 
 ### Type Aliases
@@ -171,7 +185,7 @@ Available on Android only.
 ### Enums
 
 
-#### TelephonyDataState
+#### DataState
 
 | Members                    | Value                               |
 | -------------------------- | ----------------------------------- |
@@ -184,7 +198,7 @@ Available on Android only.
 | **`HANDOVER_IN_PROGRESS`** | <code>"HANDOVER_IN_PROGRESS"</code> |
 
 
-#### TelephonySignalStrengthLevel
+#### SignalStrengthLevel
 
 | Members        | Value                   |
 | -------------- | ----------------------- |
@@ -196,7 +210,7 @@ Available on Android only.
 | **`GREAT`**    | <code>"GREAT"</code>    |
 
 
-#### TelephonyIpVersion
+#### IpVersion
 
 | Members       | Value                  |
 | ------------- | ---------------------- |
@@ -206,7 +220,7 @@ Available on Android only.
 | **`DUAL`**    | <code>"dual"</code>    |
 
 
-#### TelephonyNetworkType
+#### NetworkType
 
 | Members       | Value                  |
 | ------------- | ---------------------- |

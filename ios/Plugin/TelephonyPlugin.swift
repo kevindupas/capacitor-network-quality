@@ -1,18 +1,17 @@
 import Foundation
 import Capacitor
 
-/**
- * Please read the Capacitor iOS Plugin Development Guide
- * here: https://capacitorjs.com/docs/plugins/ios
- */
-@objc(TelephonyPlugin)
-public class TelephonyPlugin: CAPPlugin {
-    private let implementation = Telephony()
+@objc(NetworkQualityPlugin)
+public class NetworkQualityPlugin: CAPPlugin {
+    @objc func getInfo(_ call: CAPPluginCall) {
+        call.reject("Not available on iOS")
+    }
 
-    @objc func echo(_ call: CAPPluginCall) {
-        let value = call.getString("value") ?? ""
-        call.resolve([
-            "value": implementation.echo(value)
-        ])
+    @objc func getRadioInfo(_ call: CAPPluginCall) {
+        call.reject("Not available on iOS")
+    }
+
+    @objc func getNetworkType(_ call: CAPPluginCall) {
+        call.reject("Not available on iOS")
     }
 }

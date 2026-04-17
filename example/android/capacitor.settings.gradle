@@ -14,5 +14,5 @@ project(':capacitor-keyboard').projectDir = new File('../node_modules/.pnpm/@cap
 include ':capacitor-status-bar'
 project(':capacitor-status-bar').projectDir = new File('../node_modules/.pnpm/@capacitor+status-bar@5.0.7_@capacitor+core@5.7.2/node_modules/@capacitor/status-bar/android')
 
-include ':luisbytes-capacitor-telephony'
-project(':luisbytes-capacitor-telephony').projectDir = new File('../../android')
+include ':kevindupas-capacitor-network-quality'
+project(':kevindupas-capacitor-network-quality').projectDir = new File('../../android')

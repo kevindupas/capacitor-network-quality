@@ -1,4 +1,4 @@
-package dev.kevindupas.capacitor.telephony;
+package dev.kevindupas.capacitor.networkquality;
 
 import android.Manifest;
 import android.os.Build;
@@ -12,19 +12,19 @@ import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
 @CapacitorPlugin(
-    name = "Telephony",
+    name = "NetworkQuality",
     permissions = {
         @Permission(alias = "phone_state", strings = { Manifest.permission.READ_BASIC_PHONE_STATE }),
         @Permission(alias = "location", strings = { Manifest.permission.ACCESS_FINE_LOCATION })
     }
 )
-public class TelephonyPlugin extends Plugin {
+public class NetworkQualityPlugin extends Plugin {
 
-    private Telephony implementation;
+    private NetworkQuality implementation;
 
     @Override
     public void load() {
-        implementation = new Telephony(getContext());
+        implementation = new NetworkQuality(getContext());
     }
 
     @PluginMethod
@@ -84,7 +84,6 @@ public class TelephonyPlugin extends Plugin {
     }
 
     private boolean checkPermission(Boolean withBasicPermission) {
-        // Location is required for getAllCellInfo() — always check it
         if (getPermissionState("location") == PermissionState.GRANTED) {
             return true;
         }
